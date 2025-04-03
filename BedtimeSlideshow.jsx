@@ -275,6 +275,38 @@ export default function BedtimeSlideshow() {
         setError('Audio player could not be initialized');
       }
       
+      // Add specific error handling for segments that reference missing images
+      setStorySegments(data.segments || data);
+      
+      // Pre-check for images to provide better user experience
+      const checkImages = async () => {
+        const imageErrors = {};
+        for (let i = 0; i < data.segments.length; i++) {
+          const segment = data.segments[i];
+          if (segment.image) {
+            try {
+              const imageUrl = `${baseUrl}/${storyId}/${segment.image}`;
+              const imageResponse = await fetch(imageUrl, { method: 'HEAD' });
+              if (!imageResponse.ok) {
+                console.warn(`Image not found for segment ${i+1}: ${segment.image}`);
+                imageErrors[i] = true;
+              }
+            } catch (error) {
+              console.error(`Error checking image for segment ${i+1}:`, error);
+              imageErrors[i] = true;
+            }
+          }
+        }
+        
+        // Only update state if we have errors
+        if (Object.keys(imageErrors).length > 0) {
+          setImageErrors(imageErrors);
+        }
+      };
+      
+      // Check images in background
+      checkImages().catch(console.error);
+      
       setIsLoadingStory(false);
       setLoading(false);
       
@@ -500,19 +532,12 @@ export default function BedtimeSlideshow() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-6">
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-16 w-16 text-red-300 mb-4" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      <p className="text-white text-center">
-                        Image not found: {currentSegment?.image}
-                      </p>
+                    <div className="w-full h-full flex items-center justify-center bg-indigo-800/50 rounded-lg">
+                      <div className="text-center p-4">
+                        <div className="text-2xl font-bold text-white mb-2">{storyTitle}</div>
+                        <div className="text-xl text-white/80">Segment {currentSlide + 1}</div>
+                        <div className="mt-4 text-white/60 text-sm">Unable to load image</div>
+                      </div>
                     </div>
                   )}
                 </motion.div>

@@ -22,23 +22,50 @@ export async function GET(request, { params }) {
       );
     }
     
-    // Set base directory for media files
+    // First try in the public/output directory (preferred path)
     const baseDir = path.join(process.cwd(), 'public', 'output');
-    const fullPath = path.join(baseDir, filePath);
+    let fullPath = path.join(baseDir, filePath);
     
-    console.log(`Attempting to serve media file: ${fullPath}`);
+    // Log the paths we're checking
+    console.log(`Checking primary path: ${fullPath}`);
     
-    // Check if file exists
+    // If not in public/output, try in the output directory
     if (!fs.existsSync(fullPath)) {
-      console.error(`File not found: ${fullPath}`);
-      return NextResponse.json(
-        { error: 'File not found' },
-        { status: 404 }
-      );
+      const altBaseDir = path.join(process.cwd(), 'output');
+      const altPath = path.join(altBaseDir, filePath);
+      
+      console.log(`File not found at primary path, checking alternate path: ${altPath}`);
+      
+      if (fs.existsSync(altPath)) {
+        fullPath = altPath;
+      } else {
+        // For missing images, return placeholder if needed
+        if (filePath.match(/image_\d+\.png$/)) {
+          const placeholderPath = path.join(process.cwd(), 'public', 'placeholder.png');
+          
+          if (fs.existsSync(placeholderPath)) {
+            console.log(`Returning placeholder image for missing image: ${filePath}`);
+            fullPath = placeholderPath;
+          } else {
+            // Create a simple placeholder image
+            console.error(`File not found at all paths: ${filePath}`);
+            return NextResponse.json(
+              { error: 'File not found' },
+              { status: 404 }
+            );
+          }
+        } else {
+          console.error(`File not found at all paths: ${filePath}`);
+          return NextResponse.json(
+            { error: 'File not found' },
+            { status: 404 }
+          );
+        }
+      }
     }
     
     // Determine content type based on file extension
-    const ext = path.extname(fullPath).toLowerCase();
+    const ext = path.extname(filePath).toLowerCase(); // Use filePath, not fullPath to get extension
     let contentType = 'application/octet-stream'; // Default
     
     if (ext === '.mp3') {
@@ -68,7 +95,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error serving media file:', error);
     return NextResponse.json(
-      { error: 'Error serving file' },
+      { error: 'Error serving file: ' + error.message },
       { status: 500 }
     );
   }
