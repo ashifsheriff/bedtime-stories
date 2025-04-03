@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "chmod +x vercel-build.sh && ./vercel-build.sh",
   "devCommand": "npm run dev",
   "outputDirectory": ".next",
   "framework": "nextjs",
@@ -10,6 +10,12 @@
       "destination": "/public/output/:path*"
     }
   ],
+  "functions": {
+    "api/stories.js": {
+      "memory": 128,
+      "maxDuration": 5
+    }
+  },
   "github": {
     "silent": true
   }

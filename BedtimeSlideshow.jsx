@@ -66,7 +66,32 @@ export default function BedtimeSlideshow() {
           console.warn('Could not load from stories.json, falling back to API:', storiesJsonError);
         }
         
-        // Fallback to API endpoint
+        // Fallback to new lightweight API endpoint
+        try {
+          const apiResponse = await fetch('/api/story-list');
+          if (!apiResponse.ok) {
+            throw new Error(`Failed to fetch available stories: ${apiResponse.status}`);
+          }
+          const data = await apiResponse.json();
+          
+          console.log('Stories API response:', data);
+          
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          
+          if (data.stories && data.stories.length > 0) {
+            console.log(`Found ${data.stories.length} stories:`, data.stories.map(s => s.title));
+            setAvailableStories(data.stories);
+            // Initial load of the first story
+            loadStory(data.stories[0].id);
+            return;
+          }
+        } catch (storyListError) {
+          console.warn('Could not load from story-list API, falling back to stories API:', storyListError);
+        }
+        
+        // Last resort - try the original API endpoint
         const apiResponse = await fetch('/api/stories');
         if (!apiResponse.ok) {
           throw new Error(`Failed to fetch available stories: ${apiResponse.status}`);

@@ -1,0 +1,10 @@
+# Exclude large directories from serverless functions
+.git
+.deploy_backup
+public/output/**/*.mp3
+public/output/**/*.png
+node_modules
+.next
+.venv
+*.mp3
+*.png
