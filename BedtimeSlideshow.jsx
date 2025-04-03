@@ -19,35 +19,79 @@ export default function BedtimeSlideshow() {
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
+  const [currentStoryBaseUrl, setCurrentStoryBaseUrl] = useState('/output'); // Default base URL
   
   // Refs
   const audioRef = useRef(null);
   const timeUpdateInterval = useRef(null);
 
-  // Load available stories
+  // Load available stories from stories.json first, or fallback to API
   useEffect(() => {
     const fetchAvailableStories = async () => {
       try {
-        const response = await fetch('/api/stories');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch available stories: ${response.status}`);
+        console.log('Fetching available stories...');
+        // First try to load from stories.json
+        try {
+          const storiesJsonResponse = await fetch('/output/stories.json');
+          if (storiesJsonResponse.ok) {
+            const storiesData = await storiesJsonResponse.json();
+            console.log('Loaded stories from stories.json:', storiesData);
+            
+            if (storiesData.stories && storiesData.stories.length > 0) {
+              // Convert simple array of folder names to story objects
+              const formattedStories = storiesData.stories.map(folderId => {
+                // Convert folder ID to a readable title
+                const title = folderId
+                  .replace(/-/g, ' ')
+                  .split(' ')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+                  
+                return {
+                  id: folderId,
+                  title: title,
+                  valid: true,
+                  isPublic: true,
+                  baseUrl: '/output'
+                };
+              });
+              
+              setAvailableStories(formattedStories);
+              // Load the first story
+              loadStory(formattedStories[0].id);
+              return;
+            }
+          }
+        } catch (storiesJsonError) {
+          console.warn('Could not load from stories.json, falling back to API:', storiesJsonError);
         }
-        const data = await response.json();
+        
+        // Fallback to API endpoint
+        const apiResponse = await fetch('/api/stories');
+        if (!apiResponse.ok) {
+          throw new Error(`Failed to fetch available stories: ${apiResponse.status}`);
+        }
+        const data = await apiResponse.json();
+        
+        console.log('Stories API response:', data);
         
         if (data.error) {
           throw new Error(data.error);
         }
         
         if (data.stories && data.stories.length > 0) {
+          console.log(`Found ${data.stories.length} stories:`, data.stories.map(s => s.title));
           setAvailableStories(data.stories);
           // Initial load of the first story
           loadStory(data.stories[0].id);
         } else {
+          console.warn('No story folders found');
           setError("No story folders found. Please add stories to the /public/output/ directory.");
         }
       } catch (error) {
         console.error('Error fetching stories:', error);
         setError(`Failed to load stories: ${error.message}`);
+        setLoading(false);
       }
     };
 
@@ -71,7 +115,13 @@ export default function BedtimeSlideshow() {
     setIsPlaying(false);
     
     try {
-      const response = await fetch(`/output/${storyId}/story_segments.json`);
+      // Find the story in our available stories to get its baseUrl
+      const story = availableStories.find(s => s.id === storyId);
+      const baseUrl = story?.baseUrl || '/output'; // Default to /output if not found
+      setCurrentStoryBaseUrl(baseUrl);
+      
+      // Use the story's baseUrl for fetching content
+      const response = await fetch(`${baseUrl}/${storyId}/story_segments.json`);
       if (!response.ok) {
         throw new Error(`Failed to load story segments: ${response.status}`);
       }
@@ -82,8 +132,6 @@ export default function BedtimeSlideshow() {
       if (data.title) {
         setStoryTitle(data.title);
       } else {
-        // Find the story in our available stories and use its title
-        const story = availableStories.find(s => s.id === storyId);
         setStoryTitle(story ? story.title : storyId);
       }
       
@@ -103,8 +151,15 @@ export default function BedtimeSlideshow() {
 
   // Go to the next story
   const goToNextStory = () => {
-    if (availableStories.length <= 1) return;
+    if (availableStories.length === 0) return;
     
+    // If there's only one story, reload the same story
+    if (availableStories.length === 1) {
+      loadStory(availableStories[0].id);
+      return;
+    }
+    
+    // Otherwise, go to the next story in the list
     const nextIndex = (currentStoryIndex + 1) % availableStories.length;
     setCurrentStoryIndex(nextIndex);
     loadStory(availableStories[nextIndex].id);
@@ -223,15 +278,21 @@ export default function BedtimeSlideshow() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-indigo-900">
-        <div className="text-white text-2xl">Loading your bedtime story...</div>
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-indigo-900 to-purple-800">
+        <div className="text-center">
+          <svg className="animate-spin h-16 w-16 text-white mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <div className="text-white text-2xl">Loading your bedtime stories...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-indigo-900 p-8">
+      <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-b from-indigo-900 to-purple-800 p-8">
         <div className="bg-red-500/20 border border-red-500 rounded-lg p-6 max-w-2xl">
           <h2 className="text-white text-2xl mb-4 text-center">Unable to Load Story</h2>
           <p className="text-white text-lg">{error}</p>
@@ -260,7 +321,7 @@ export default function BedtimeSlideshow() {
 
   if (storySegments.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen bg-indigo-900">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-indigo-900 to-purple-800">
         <div className="text-white text-2xl text-center p-8">
           No story segments found. Please check that your story_segments.json file exists and is properly formatted.
         </div>
@@ -276,23 +337,29 @@ export default function BedtimeSlideshow() {
       {/* Audio Element */}
       <audio 
         ref={audioRef} 
-        src={`/output/${currentStoryId}/story_audio.mp3`}
+        src={`${currentStoryBaseUrl}/${currentStoryId}/story_audio.mp3`}
         className="hidden" 
       />
 
       <div className="flex flex-col h-full max-w-5xl mx-auto px-4 py-8">
         {/* Story Title & Controls */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-center text-3xl md:text-4xl text-white font-bold">
-            {storyTitle}
-          </h1>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl text-white font-bold">
+              {storyTitle}
+            </h1>
+            <p className="text-white/70 text-sm">
+              Story {currentStoryIndex + 1} of {availableStories.length}
+            </p>
+          </div>
           
-          {availableStories.length > 1 && (
+          {/* Always show the Next Story button when there are stories */}
+          {availableStories.length >= 1 && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={goToNextStory}
-              className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-medium py-2 px-4 rounded-full flex items-center"
+              className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-medium py-3 px-6 rounded-full flex items-center shadow-lg"
               disabled={isLoadingStory}
             >
               {isLoadingStory ? (
@@ -300,7 +367,11 @@ export default function BedtimeSlideshow() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-              ) : null}
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+              )}
               Next Story
             </motion.button>
           )}
@@ -344,7 +415,7 @@ export default function BedtimeSlideshow() {
                 >
                   {!imageErrors[currentSlide] ? (
                     <img
-                      src={`/output/${currentStoryId}/${currentSegment?.image}`}
+                      src={`${currentStoryBaseUrl}/${currentStoryId}/${currentSegment?.image}`}
                       alt={`Illustration for slide ${currentSlide + 1}`}
                       onError={() => handleImageError(currentSlide)}
                       className="w-full h-full object-contain"
