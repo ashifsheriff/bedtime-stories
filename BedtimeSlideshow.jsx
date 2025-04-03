@@ -135,6 +135,86 @@ export default function BedtimeSlideshow() {
     }
   };
 
+  // Set up audio event handlers
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    // When audio metadata is loaded, set duration and allow playback
+    const handleLoadedMetadata = () => {
+      console.log('Audio metadata loaded');
+      setDuration(audio.duration);
+      setAudioLoaded(true);
+      setLoading(false);
+    };
+    
+    // When audio playback ends
+    const handleEnded = () => {
+      setIsPlaying(false);
+      // Auto-advance to next slide if not on the last slide
+      if (currentSlide < storySegments.length - 1) {
+        setCurrentSlide(currentSlide + 1);
+        setProgress(storySegments[currentSlide + 1].start);
+        audio.currentTime = storySegments[currentSlide + 1].start;
+      } else {
+        // We've reached the end of the story
+        setProgress(0);
+        audio.currentTime = 0;
+      }
+    };
+    
+    // Update progress during playback
+    const handleTimeUpdate = () => {
+      setProgress(audio.currentTime);
+      
+      // Find the appropriate slide for this time
+      const segmentIndex = storySegments.findIndex(
+        segment => audio.currentTime >= segment.start && audio.currentTime < segment.end
+      );
+      
+      if (segmentIndex !== -1 && segmentIndex !== currentSlide) {
+        setCurrentSlide(segmentIndex);
+      }
+    };
+    
+    // Handle audio errors
+    const handleError = (e) => {
+      console.error('Audio error:', e);
+      setError('Unable to load audio file. Please check that the file exists and is a valid audio format.');
+      setLoading(false);
+    };
+    
+    // Add event listeners
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('error', handleError);
+    
+    // Set up interval for more frequent progress updates
+    if (timeUpdateInterval.current) {
+      clearInterval(timeUpdateInterval.current);
+    }
+    
+    timeUpdateInterval.current = setInterval(() => {
+      if (audio && isPlaying) {
+        setProgress(audio.currentTime);
+      }
+    }, 50);
+    
+    return () => {
+      // Clean up event listeners
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('error', handleError);
+      
+      // Clear interval
+      if (timeUpdateInterval.current) {
+        clearInterval(timeUpdateInterval.current);
+      }
+    };
+  }, [currentSlide, isPlaying, storySegments]);
+
   // Load a specific story
   const loadStory = async (storyId) => {
     setIsLoadingStory(true);
@@ -155,21 +235,20 @@ export default function BedtimeSlideshow() {
     try {
       // Find the story in our available stories to get its baseUrl
       const story = availableStories.find(s => s.id === storyId);
-      const baseUrl = story?.baseUrl || '/output'; // Default to /output if not found
+      
+      // Use our new API endpoint instead of direct file access
+      const baseUrl = '/api/media';
       setCurrentStoryBaseUrl(baseUrl);
       
-      console.log(`Loading story: ${storyId} from base URL: ${baseUrl}`);
+      console.log(`Loading story: ${storyId} from API endpoint: ${baseUrl}`);
       
-      // Check if we're on Vercel deployment
-      const isVercel = window.location.hostname.includes('vercel.app');
-      
-      // Use the story's baseUrl for fetching content
+      // Fetch story segments from our API
       const segmentsUrl = `${baseUrl}/${storyId}/story_segments.json`;
       console.log(`Fetching story segments from: ${segmentsUrl}`);
       
       const response = await fetch(segmentsUrl);
       if (!response.ok) {
-        throw new Error(`Failed to load story segments: ${response.status}`);
+        throw new Error(`Failed to load story segments: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -184,31 +263,16 @@ export default function BedtimeSlideshow() {
       // Set segments
       setStorySegments(data.segments || data);
       
-      // Try possible audio URLs
-      const possibleAudioUrls = [
-        `${baseUrl}/${storyId}/story_audio.mp3`,
-        `/public/output/${storyId}/story_audio.mp3`,
-        `/output/${storyId}/story_audio.mp3`
-      ];
+      // Set audio directly through our API
+      const audioUrl = `${baseUrl}/${storyId}/story_audio.mp3`;
+      console.log(`Setting audio URL: ${audioUrl}`);
       
-      console.log('Checking possible audio URLs:', possibleAudioUrls);
-      
-      let audioUrl = null;
-      for (const url of possibleAudioUrls) {
-        const exists = await checkAudioExists(url);
-        if (exists) {
-          audioUrl = url;
-          console.log(`Found working audio URL: ${audioUrl}`);
-          break;
-        }
-      }
-      
-      if (audioUrl && audioRef.current) {
+      if (audioRef.current) {
         audioRef.current.src = audioUrl;
-        setAudioLoaded(true);
+        // We'll wait for the audio's onloadedmetadata event to set audioLoaded to true
       } else {
-        console.error('Could not find a working audio URL');
-        setError('Audio file not found. Please check server configuration.');
+        console.error('Audio ref is null');
+        setError('Audio player could not be initialized');
       }
       
       setIsLoadingStory(false);
@@ -237,75 +301,6 @@ export default function BedtimeSlideshow() {
     setCurrentStoryIndex(nextIndex);
     loadStory(availableStories[nextIndex].id);
   };
-
-  // Set up audio event handlers
-  useEffect(() => {
-    if (!audioRef.current || error) return;
-
-    const audio = audioRef.current;
-
-    const handleLoadedMetadata = () => {
-      console.log('Audio metadata loaded, duration:', audio.duration);
-      setDuration(audio.duration);
-      setAudioLoaded(true);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentSlide(0);
-      setProgress(0);
-    };
-
-    const handleError = (e) => {
-      console.error('Audio error:', e);
-      setError("Unable to load audio file. Please check that the file exists and is a valid audio format.");
-    };
-
-    // When audio loads, set duration
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-    };
-  }, [error, audioRef.current]);
-
-  // Update current slide based on audio time
-  useEffect(() => {
-    if (!isPlaying || storySegments.length === 0 || error) {
-      if (timeUpdateInterval.current) {
-        clearInterval(timeUpdateInterval.current);
-        timeUpdateInterval.current = null;
-      }
-      return;
-    }
-
-    // Check audio time every 100ms and update current slide
-    timeUpdateInterval.current = setInterval(() => {
-      if (!audioRef.current) return;
-      
-      const currentTime = audioRef.current.currentTime;
-      setProgress(currentTime);
-
-      // Find which segment we're currently in
-      const segmentIndex = storySegments.findIndex(
-        segment => currentTime >= segment.start && currentTime < segment.end
-      );
-
-      if (segmentIndex !== -1 && segmentIndex !== currentSlide) {
-        setCurrentSlide(segmentIndex);
-      }
-    }, 100);
-
-    return () => {
-      if (timeUpdateInterval.current) {
-        clearInterval(timeUpdateInterval.current);
-      }
-    };
-  }, [isPlaying, storySegments, currentSlide, error]);
 
   // Handle play/pause
   const togglePlayPause = () => {
