@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-indigo-900 text-white;
+  }
+  
+  /* For the audio player */
+  audio::-webkit-media-controls-panel {
+    @apply bg-indigo-800 bg-opacity-70;
+  }
+  
+  audio::-webkit-media-controls-play-button,
+  audio::-webkit-media-controls-mute-button {
+    @apply text-purple-300;
+  }
+} 

@@ -1,0 +1,44 @@
+[
+  {
+    "text": "Once upon a time, in a land of towering mountains and green valleys, there lived a small red dragon named Ember. Ember loved to fly high in the sky and breathe tiny flames that sparkled like fireworks.",
+    "image": "image_1.png",
+    "start": 0,
+    "end": 15
+  },
+  {
+    "text": "One day, while exploring a cave, Ember found something unusual—a little robot made of shiny metal. The robot's eyes blinked blue, and it made funny whirring sounds.",
+    "image": "image_2.png",
+    "start": 15,
+    "end": 30
+  },
+  {
+    "text": "\"Hello,\" said Ember. \"I'm Ember. Who are you?\" The robot beeped and whistled. \"I am Bolt. I am lost.\"",
+    "image": "image_3.png",
+    "start": 30,
+    "end": 45
+  },
+  {
+    "text": "Ember smiled. \"Don't worry, Bolt. I can help you find your way home.\" And so, the dragon and the robot became friends.",
+    "image": "image_4.png",
+    "start": 45,
+    "end": 60
+  },
+  {
+    "text": "Ember carried Bolt on adventures through the mountains, while Bolt taught Ember about stars and science.",
+    "image": "image_5.png",
+    "start": 60,
+    "end": 75
+  },
+  {
+    "text": "When they finally found Bolt's spaceship, Ember felt sad. \"Will you leave now?\" Bolt whirred thoughtfully. \"I can stay one more day. Friends are more important than schedules.\"",
+    "image": "image_6.png",
+    "start": 75,
+    "end": 90
+  },
+  {
+    "text": "The dragon and the robot watched the sunset together, different as could be, but the best of friends. And every year after that, Bolt would return to visit, and they would share new adventures together.",
+    "image": "image_7.png",
+    "start": 90,
+    "end": 120
+  }
+] 
