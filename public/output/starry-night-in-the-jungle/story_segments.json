@@ -1,0 +1,65 @@
+{
+  "title": "Starry Night In The Jungle",
+  "segments": [
+    {
+      "text": "Segment 1 for the story about Starry Night in the Jungle.",
+      "image": "image_1.png",
+      "start": 0,
+      "end": 5
+    },
+    {
+      "text": "Segment 2 for the story about Starry Night in the Jungle.",
+      "image": "image_2.png",
+      "start": 5,
+      "end": 10
+    },
+    {
+      "text": "Segment 3 for the story about Starry Night in the Jungle.",
+      "image": "image_3.png",
+      "start": 10,
+      "end": 15
+    },
+    {
+      "text": "Segment 4 for the story about Starry Night in the Jungle.",
+      "image": "image_4.png",
+      "start": 15,
+      "end": 20
+    },
+    {
+      "text": "Segment 5 for the story about Starry Night in the Jungle.",
+      "image": "image_5.png",
+      "start": 20,
+      "end": 25
+    },
+    {
+      "text": "Segment 6 for the story about Starry Night in the Jungle.",
+      "image": "image_6.png",
+      "start": 25,
+      "end": 30
+    },
+    {
+      "text": "Segment 7 for the story about Starry Night in the Jungle.",
+      "image": "image_7.png",
+      "start": 30,
+      "end": 35
+    },
+    {
+      "text": "Segment 8 for the story about Starry Night in the Jungle.",
+      "image": "image_8.png",
+      "start": 35,
+      "end": 40
+    },
+    {
+      "text": "Segment 9 for the story about Starry Night in the Jungle.",
+      "image": "image_9.png",
+      "start": 40,
+      "end": 45
+    },
+    {
+      "text": "Segment 10 for the story about Starry Night in the Jungle.",
+      "image": "image_10.png",
+      "start": 45,
+      "end": 50
+    }
+  ]
+}
