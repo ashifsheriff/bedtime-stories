@@ -1,83 +1,87 @@
 # Bedtime Story Generator
 
-This Python script automatically generates 10 unique bedtime stories for children, complete with text, images, and audio narration.
+A Python script that generates complete bedtime stories for children, including text, images, and audio narration using OpenAI's APIs.
 
 ## Features
 
-- Generates 10 unique bedtime story ideas
-- Creates short, child-friendly stories (200-300 words each)
-- Divides each story into 10 segments
-- Generates a custom image for each segment using DALL·E
-- Creates audio narration using OpenAI's Text-to-Speech API
-- Saves everything in an organized directory structure
+- Generates 10 unique, creative bedtime stories for children
+- Each story includes:
+  - A creative title
+  - 10 segments of text forming a complete story
+  - An illustrative image for each segment
+  - Audio narration of the full story
+- All content is saved in a structured format for easy integration with the story viewer UI
+- Robust error handling with retry logic for API calls
+- Command-line options to customize the number of stories and segments
 
 ## Requirements
 
-- Python 3.7 or later
-- OpenAI API key with access to:
-  - GPT-4
-  - DALL·E 3
-  - TTS-1 (Text-to-Speech)
+- Python 3.8 or higher
+- OpenAI API key with access to GPT-4, DALL-E 3, and TTS-1 models
+- Internet connection
 
 ## Installation
 
-1. Clone this repository
-2. Install the required packages:
+1. Clone this repository or download the script
+
+2. Install the required dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install openai python-dotenv pillow requests
    ```
-3. Create a `.env` file in the project root with your OpenAI API key:
-   ```
-   OPENAI_API_KEY=your_api_key_here
+
+3. Copy the `.env.example` file to `.env` and add your OpenAI API key:
+   ```bash
+   cp .env.example .env
+   # Edit the .env file with your API key
    ```
 
 ## Usage
 
-Run the script:
+Run the script with default settings (generates 10 stories, each with 10 segments):
 ```bash
-python story_generator.py
+python bedtime_story_generator.py
 ```
 
-The script will:
-1. Generate 10 unique bedtime story ideas
-2. For each story:
-   - Create a complete 10-segment story
-   - Generate 10 illustrations (one per segment)
-   - Create audio narration for the entire story
-   - Save everything to a directory named after the story
+Customize the number of stories or segments:
+```bash
+python bedtime_story_generator.py --stories 5 --segments 8
+```
 
 ## Output Structure
 
+The script creates the following directory structure for each story:
+
 ```
-output/
-├── story-one-title/
-│   ├── story.txt                 # Complete story text
-│   ├── story_segments.json       # Story segments with timing data
-│   ├── story_audio.mp3           # Audio narration
-│   ├── image_1.png               # Illustrations for each segment
-│   ├── image_2.png
-│   └── ...
-├── story-two-title/
-│   └── ...
-└── ...
+public/
+└── output/
+    ├── story-title-one/
+    │   ├── story.txt           # Complete story text
+    │   ├── story_audio.mp3     # Audio narration
+    │   ├── story_segments.json # Story data with timing info
+    │   ├── image_1.png         # First segment illustration
+    │   ├── image_2.png
+    │   └── ... (10 images total)
+    ├── story-title-two/
+    │   └── ...
+    └── ...
 ```
 
-## Story Segments JSON Format
+### story_segments.json Format
 
-Each `story_segments.json` file has this structure:
+Each story's `story_segments.json` file follows this format:
 
 ```json
 {
-  "title": "Story Title",
+  "title": "The Story Title",
   "segments": [
     {
-      "text": "Text for the first segment...",
+      "text": "First segment text...",
       "image": "image_1.png",
       "start": 0,
       "end": 5
     },
     {
-      "text": "Text for the second segment...",
+      "text": "Second segment text...",
       "image": "image_2.png",
       "start": 5,
       "end": 10
@@ -87,19 +91,32 @@ Each `story_segments.json` file has this structure:
 }
 ```
 
-## Notes
+## Warning
 
-- The script includes retry logic for API calls
-- Story generation takes time due to multiple API calls (especially for images)
-- API usage will incur costs according to OpenAI's pricing
-- Segments have fixed timing (5 seconds each by default)
+This script makes multiple API calls to OpenAI's services, which may incur costs based on your OpenAI account plan. The script includes:
+- 10 GPT-4 calls for story ideas (small)
+- 10 GPT-4 calls for story generation (medium)
+- 100 DALL-E 3 image generation calls (larger cost)
+- 10 Text-to-Speech API calls (small to medium)
 
-## Customization
+Please be aware of your usage limits and associated costs.
 
-You can modify these constants at the top of the script:
+## Customizing Content
 
-```python
-NUM_STORIES = 10      # Number of stories to generate
-NUM_SEGMENTS = 10     # Segments per story
-SEGMENT_DURATION = 5  # Seconds per segment
-``` 
+You can modify the prompts in the script to change the style, theme, or format of the generated stories. Look for the following functions:
+- `generate_story_ideas()` - For customizing the type of story ideas
+- `generate_story_with_segments()` - For changing the story format and style
+- `generate_image_for_segment()` - For modifying image style and content
+
+## Troubleshooting
+
+If you encounter errors:
+
+1. Ensure your OpenAI API key is valid and has sufficient credits
+2. Check your internet connection
+3. If rate-limited by OpenAI, try reducing the number of stories or increasing the delay between API calls
+4. For API errors, the script includes retry logic and will attempt 3 times before creating placeholder content
+
+## License
+
+This project is released under the MIT License. 

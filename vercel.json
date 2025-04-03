@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/output/:path*",
+      "destination": "/public/output/:path*"
+    }
+  ],
+  "github": {
+    "silent": true
+  }
+} 

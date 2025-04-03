@@ -1,44 +1,65 @@
-[
-  {
-    "text": "Once upon a time, in a land of towering mountains and green valleys, there lived a small red dragon named Ember. Ember loved to fly high in the sky and breathe tiny flames that sparkled like fireworks.",
-    "image": "image_1.png",
-    "start": 0,
-    "end": 15
-  },
-  {
-    "text": "One day, while exploring a cave, Ember found something unusual—a little robot made of shiny metal. The robot's eyes blinked blue, and it made funny whirring sounds.",
-    "image": "image_2.png",
-    "start": 15,
-    "end": 30
-  },
-  {
-    "text": "\"Hello,\" said Ember. \"I'm Ember. Who are you?\" The robot beeped and whistled. \"I am Bolt. I am lost.\"",
-    "image": "image_3.png",
-    "start": 30,
-    "end": 45
-  },
-  {
-    "text": "Ember smiled. \"Don't worry, Bolt. I can help you find your way home.\" And so, the dragon and the robot became friends.",
-    "image": "image_4.png",
-    "start": 45,
-    "end": 60
-  },
-  {
-    "text": "Ember carried Bolt on adventures through the mountains, while Bolt taught Ember about stars and science.",
-    "image": "image_5.png",
-    "start": 60,
-    "end": 75
-  },
-  {
-    "text": "When they finally found Bolt's spaceship, Ember felt sad. \"Will you leave now?\" Bolt whirred thoughtfully. \"I can stay one more day. Friends are more important than schedules.\"",
-    "image": "image_6.png",
-    "start": 75,
-    "end": 90
-  },
-  {
-    "text": "The dragon and the robot watched the sunset together, different as could be, but the best of friends. And every year after that, Bolt would return to visit, and they would share new adventures together.",
-    "image": "image_7.png",
-    "start": 90,
-    "end": 120
-  }
-] 
+{
+  "title": "The Moonlight Adventure",
+  "segments": [
+    {
+      "text": "Once upon a time in a sleepy village, there lived a little girl named Luna who loved the night sky more than anything else in the world.",
+      "image": "image_1.png",
+      "start": 0,
+      "end": 5
+    },
+    {
+      "text": "Every evening, Luna would sit by her window and gaze at the moon, wondering what adventures awaited in its silvery glow.",
+      "image": "image_2.png",
+      "start": 5,
+      "end": 10
+    },
+    {
+      "text": "One night, as Luna watched the moon, it seemed to wink at her. A tiny moonbeam stretched down from the sky right into her bedroom!",
+      "image": "image_3.png",
+      "start": 10,
+      "end": 15
+    },
+    {
+      "text": "The moonbeam transformed into a shimmering path. 'Come,' whispered a gentle voice. 'The moon has invited you for a special visit.'",
+      "image": "image_4.png",
+      "start": 15,
+      "end": 20
+    },
+    {
+      "text": "Bravely, Luna stepped onto the moonbeam path. It felt cool and sparkly beneath her feet as she began to float upward toward the stars.",
+      "image": "image_5.png",
+      "start": 20,
+      "end": 25
+    },
+    {
+      "text": "Higher and higher she climbed until she reached the moon, which wasn't made of cheese at all, but of glowing crystal gardens and silver trees.",
+      "image": "image_6.png",
+      "start": 25,
+      "end": 30
+    },
+    {
+      "text": "Luna met the Moon Keeper, an old rabbit with wise eyes who showed her how they painted dreams and sent them floating down to sleeping children.",
+      "image": "image_7.png",
+      "start": 30,
+      "end": 35
+    },
+    {
+      "text": "Together they collected stardust, danced with moonbeams, and Luna even helped paint a beautiful dream about flying over mountains and oceans.",
+      "image": "image_8.png",
+      "start": 35,
+      "end": 40
+    },
+    {
+      "text": "When it was time to go home, the Moon Keeper gave Luna a small crystal that would always shine with moonlight, even on cloudy nights.",
+      "image": "image_9.png",
+      "start": 40,
+      "end": 45
+    },
+    {
+      "text": "Luna drifted back to her bedroom on a silver moonbeam, clutching her crystal treasure. Now, whenever she misses the moon, she just holds it close and remembers her magical adventure.",
+      "image": "image_10.png",
+      "start": 45,
+      "end": 50
+    }
+  ]
+} 
