@@ -10,12 +10,6 @@
       "destination": "/public/output/:path*"
     }
   ],
-  "functions": {
-    "api/stories.js": {
-      "memory": 128,
-      "maxDuration": 5
-    }
-  },
   "github": {
     "silent": true
   }
