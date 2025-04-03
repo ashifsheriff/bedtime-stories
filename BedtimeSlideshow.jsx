@@ -20,6 +20,7 @@ export default function BedtimeSlideshow() {
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
   const [currentStoryBaseUrl, setCurrentStoryBaseUrl] = useState('/output'); // Default base URL
+  const [audioLoaded, setAudioLoaded] = useState(false);
   
   // Refs
   const audioRef = useRef(null);
@@ -123,6 +124,17 @@ export default function BedtimeSlideshow() {
     fetchAvailableStories();
   }, []);
 
+  // Check if audio file exists at a given URL
+  const checkAudioExists = async (url) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.error(`Error checking audio at ${url}:`, error);
+      return false;
+    }
+  };
+
   // Load a specific story
   const loadStory = async (storyId) => {
     setIsLoadingStory(true);
@@ -131,6 +143,7 @@ export default function BedtimeSlideshow() {
     setStorySegments([]);
     setCurrentSlide(0);
     setProgress(0);
+    setAudioLoaded(false);
     
     // Stop audio if playing
     if (audioRef.current) {
@@ -145,8 +158,16 @@ export default function BedtimeSlideshow() {
       const baseUrl = story?.baseUrl || '/output'; // Default to /output if not found
       setCurrentStoryBaseUrl(baseUrl);
       
+      console.log(`Loading story: ${storyId} from base URL: ${baseUrl}`);
+      
+      // Check if we're on Vercel deployment
+      const isVercel = window.location.hostname.includes('vercel.app');
+      
       // Use the story's baseUrl for fetching content
-      const response = await fetch(`${baseUrl}/${storyId}/story_segments.json`);
+      const segmentsUrl = `${baseUrl}/${storyId}/story_segments.json`;
+      console.log(`Fetching story segments from: ${segmentsUrl}`);
+      
+      const response = await fetch(segmentsUrl);
       if (!response.ok) {
         throw new Error(`Failed to load story segments: ${response.status}`);
       }
@@ -162,6 +183,33 @@ export default function BedtimeSlideshow() {
       
       // Set segments
       setStorySegments(data.segments || data);
+      
+      // Try possible audio URLs
+      const possibleAudioUrls = [
+        `${baseUrl}/${storyId}/story_audio.mp3`,
+        `/public/output/${storyId}/story_audio.mp3`,
+        `/output/${storyId}/story_audio.mp3`
+      ];
+      
+      console.log('Checking possible audio URLs:', possibleAudioUrls);
+      
+      let audioUrl = null;
+      for (const url of possibleAudioUrls) {
+        const exists = await checkAudioExists(url);
+        if (exists) {
+          audioUrl = url;
+          console.log(`Found working audio URL: ${audioUrl}`);
+          break;
+        }
+      }
+      
+      if (audioUrl && audioRef.current) {
+        audioRef.current.src = audioUrl;
+        setAudioLoaded(true);
+      } else {
+        console.error('Could not find a working audio URL');
+        setError('Audio file not found. Please check server configuration.');
+      }
       
       setIsLoadingStory(false);
       setLoading(false);
@@ -197,7 +245,9 @@ export default function BedtimeSlideshow() {
     const audio = audioRef.current;
 
     const handleLoadedMetadata = () => {
+      console.log('Audio metadata loaded, duration:', audio.duration);
       setDuration(audio.duration);
+      setAudioLoaded(true);
     };
 
     const handleEnded = () => {
@@ -206,7 +256,8 @@ export default function BedtimeSlideshow() {
       setProgress(0);
     };
 
-    const handleError = () => {
+    const handleError = (e) => {
+      console.error('Audio error:', e);
       setError("Unable to load audio file. Please check that the file exists and is a valid audio format.");
     };
 
@@ -362,11 +413,19 @@ export default function BedtimeSlideshow() {
       {/* Audio Element */}
       <audio 
         ref={audioRef} 
-        src={`${currentStoryBaseUrl}/${currentStoryId}/story_audio.mp3`}
+        preload="auto"
+        crossOrigin="anonymous"
         className="hidden" 
       />
 
       <div className="flex flex-col h-full max-w-5xl mx-auto px-4 py-8">
+        {/* Debug Info - Remove in production */}
+        <div className="absolute top-0 right-0 bg-black/50 text-white text-xs p-2 m-2 rounded-lg z-50">
+          Audio Loaded: {audioLoaded ? 'Yes' : 'No'} | 
+          Story: {currentStoryId} |
+          Base URL: {currentStoryBaseUrl}
+        </div>
+        
         {/* Story Title & Controls */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div className="text-center md:text-left">

@@ -47,6 +47,39 @@ fs.writeFileSync(
 console.log('Created stories.json with', storyDirs.length, 'stories');
 "
 
+# Ensure that all MP3 files have the right MIME type
+echo "Ensuring MP3 files have the correct headers..."
+
+# Create a .vercel/output/config.json to set MIME types
+mkdir -p .vercel/output
+cat > .vercel/output/config.json << EOL
+{
+  "version": 3,
+  "routes": [
+    {
+      "src": "/(.*).mp3",
+      "headers": {
+        "content-type": "audio/mpeg",
+        "access-control-allow-origin": "*"
+      },
+      "continue": true
+    },
+    {
+      "src": "/(.*).png",
+      "headers": {
+        "content-type": "image/png",
+        "access-control-allow-origin": "*"
+      },
+      "continue": true
+    }
+  ]
+}
+EOL
+
+# Check and report on audio files
+echo "Checking audio files in public/output..."
+find public/output -name "*.mp3" | wc -l 
+
 # Run the normal build command
 echo "Running Next.js build..."
 npm run build
